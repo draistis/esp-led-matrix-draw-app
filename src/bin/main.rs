@@ -9,8 +9,10 @@
 use defmt::info;
 use embassy_executor::Spawner;
 use embassy_time::{Duration, Timer};
-use esp_hal::clock::CpuClock;
+use esp_hal::gpio::{Level, OutputConfig};
 use esp_hal::timer::timg::TimerGroup;
+use esp_hal::{clock::CpuClock, gpio::Output};
+use esp_led_matrix_draw_app::led_matrix::update_matrix;
 use {esp_backtrace as _, esp_println as _};
 
 extern crate alloc;
@@ -21,12 +23,31 @@ esp_bootloader_esp_idf::esp_app_desc!();
 
 #[esp_hal_embassy::main]
 async fn main(spawner: Spawner) {
-    // generator version: 0.5.0
-
     let config = esp_hal::Config::default().with_cpu_clock(CpuClock::max());
     let peripherals = esp_hal::init(config);
 
     esp_alloc::heap_allocator!(size: 64 * 1024);
+
+    let rows: [Output; 8] = [
+        Output::new(peripherals.GPIO15, Level::Low, OutputConfig::default()),
+        Output::new(peripherals.GPIO2, Level::Low, OutputConfig::default()),
+        Output::new(peripherals.GPIO4, Level::Low, OutputConfig::default()),
+        Output::new(peripherals.GPIO16, Level::Low, OutputConfig::default()),
+        Output::new(peripherals.GPIO17, Level::Low, OutputConfig::default()),
+        Output::new(peripherals.GPIO5, Level::Low, OutputConfig::default()),
+        Output::new(peripherals.GPIO18, Level::Low, OutputConfig::default()),
+        Output::new(peripherals.GPIO19, Level::Low, OutputConfig::default()),
+    ];
+    let cols: [Output; 8] = [
+        Output::new(peripherals.GPIO13, Level::High, OutputConfig::default()),
+        Output::new(peripherals.GPIO12, Level::High, OutputConfig::default()),
+        Output::new(peripherals.GPIO14, Level::High, OutputConfig::default()),
+        Output::new(peripherals.GPIO27, Level::High, OutputConfig::default()),
+        Output::new(peripherals.GPIO26, Level::High, OutputConfig::default()),
+        Output::new(peripherals.GPIO25, Level::High, OutputConfig::default()),
+        Output::new(peripherals.GPIO33, Level::High, OutputConfig::default()),
+        Output::new(peripherals.GPIO32, Level::High, OutputConfig::default()),
+    ];
 
     let timer0 = TimerGroup::new(peripherals.TIMG1);
     esp_hal_embassy::init(timer0.timer0);
@@ -40,12 +61,11 @@ async fn main(spawner: Spawner) {
     let (mut _wifi_controller, _interfaces) = esp_wifi::wifi::new(&wifi_init, peripherals.WIFI)
         .expect("Failed to initialize WIFI controller");
 
-    // TODO: Spawn some tasks
-    let _ = spawner;
+    spawner.spawn(update_matrix(rows, cols)).unwrap();
 
     loop {
         info!("Hello world!");
-        Timer::after(Duration::from_secs(1)).await;
+        Timer::after(Duration::from_secs(10)).await;
     }
 
     // for inspiration have a look at the examples at https://github.com/esp-rs/esp-hal/tree/esp-hal-v1.0.0-rc.0/examples/src/bin
