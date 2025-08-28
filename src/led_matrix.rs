@@ -1,6 +1,4 @@
 use core::sync::atomic::Ordering;
-
-use defmt::info;
 use embassy_time::Timer;
 use esp_hal::gpio::Output;
 use portable_atomic::AtomicU64;
@@ -10,7 +8,7 @@ pub static MATRIX: AtomicU64 = AtomicU64::new(0);
 
 /// Helper function to select the bit we want to access
 fn bit(x: u8, y: u8) -> u64 {
-    1_u64 << x * 8 + y
+    1_u64 << y * 8 + x
 }
 
 /// Function returns the state (ON/OFF) of the LED at coordinates (x, y) in the virtual matrix
@@ -29,7 +27,7 @@ pub fn set(x: u8, y: u8, on: bool) {
 }
 
 /// Function returns state of virtual matrix
-fn snapshot() -> u64 {
+pub fn snapshot() -> u64 {
     MATRIX.load(Ordering::Relaxed)
 }
 
@@ -43,7 +41,7 @@ pub async fn update_matrix(mut rows: [Output<'static>; 8], mut cols: [Output<'st
             }
             row.set_high();
             for (x, col) in cols.iter_mut().enumerate() {
-                if get(x.try_into().unwrap(), y.try_into().unwrap()) {
+                if get(x as u8, y as u8) {
                     col.set_low();
                 }
             }

@@ -70,7 +70,7 @@ async fn connection_task(mut controller: WifiController<'static>) {
             );
             controller.set_configuration(&client_config).unwrap();
             info!("Starting wifi");
-            controller.start_async().await.unwrap();
+            controller.start_async().await.unwrap(); // Attempt to free null pointer
             info!("Wifi started!");
         }
     }
