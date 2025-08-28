@@ -8,7 +8,7 @@ pub static MATRIX: AtomicU64 = AtomicU64::new(0);
 
 /// Helper function to select the bit we want to access
 fn bit(x: u8, y: u8) -> u64 {
-    1_u64 << y * 8 + x
+    1_u64 << (y * 8 + x)
 }
 
 /// Function returns the state (ON/OFF) of the LED at coordinates (x, y) in the virtual matrix

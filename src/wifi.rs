@@ -51,19 +51,16 @@ async fn net_task(mut runner: Runner<'static, WifiDevice<'static>>) {
 #[embassy_executor::task]
 async fn connection_task(mut controller: WifiController<'static>) {
     loop {
-        match esp_wifi::wifi::wifi_state() {
-            WifiState::ApStarted => {
-                // wait until we're no longer connected
-                controller.wait_for_event(WifiEvent::ApStop).await;
-                Timer::after_millis(5000).await
-            }
-            _ => {}
+        if esp_wifi::wifi::wifi_state() == WifiState::ApStarted {
+            // wait until we're no longer connected
+            controller.wait_for_event(WifiEvent::ApStop).await;
+            Timer::after_millis(5000).await
         }
         if !matches!(controller.is_started(), Ok(true)) {
             let client_config = esp_wifi::wifi::Configuration::AccessPoint(
                 esp_wifi::wifi::AccessPointConfiguration {
-                    ssid: AP_SSID.try_into().unwrap(),
-                    password: AP_PASSWORD.try_into().unwrap(),
+                    ssid: AP_SSID.into(),
+                    password: AP_PASSWORD.into(),
                     auth_method: esp_wifi::wifi::AuthMethod::WPA2Personal,
                     ..Default::default()
                 },

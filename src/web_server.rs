@@ -143,6 +143,4 @@ async fn send_update(socket: &mut TcpSocket<'static>) {
     socket.flush().await.unwrap();
 }
 
-async fn send_pong() {
-    return;
-}
+async fn send_pong() {}
