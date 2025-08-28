@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>LED Matrix</title>
+    <style>
+        body {
+            margin: 0;
+            background: #111;
+        }
+
+        canvas {
+            display: block;
+            margin: auto;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas" width="640" height="640"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const webSocket = new WebSocket(`ws://${location.host}/ws`);
+        const ctx = canvas.getContext("2d"), S = 80;
+
+        let bitmap = new Uint8Array(8);
+
+        function draw() {
+            for (let y = 0; y < 8; y++)
+                for (let x = 0; x < 8; x++) {
+                    ctx.fillStyle = bitmap[y] & (1 << (7 - x)) ? 'red' : 'white';
+                    ctx.fillRect(x * S, y * S, S - 1, S - 1);
+                }
+        }
+
+        canvas.onclick = e => {
+            const x = e.offsetX / S | 0;
+            const y = e.offsetY / S | 0;
+            const bitMask = (1 << (7 - x));
+            let prevState = bitmap[y] & bitMask;
+            bitmap[y] ^= bitMask;
+            webSocket.send(JSON.stringify({ x, y, on: !prevState }));
+            draw();
+        };
+
+        webSocket.onmessage = async e => {
+            const bytes = new Uint8Array(await e.data.arrayBuffer());
+            draw();
+        };
+
+        draw();
+    </script>
+</body>
+
+</html>
