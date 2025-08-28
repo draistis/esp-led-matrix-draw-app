@@ -64,6 +64,12 @@ portable-atomic = { version = "1.11.1", features = [
   "critical-section",
   "require-cas",
 ] }
+serde-json-core = { version = "0.6.0", default-features = false, features = [
+  "defmt",
+] }
+sha1 = { version = "0.10.6", default-features = false }
+base64 = { version = "0.22.1", default-features = false, features = ["alloc"] }
+serde = { version = "1.0.219", default-features = false, features = ["derive"] }
 
 
 [profile.dev]
