@@ -36,16 +36,14 @@ pub fn snapshot() -> u64 {
 pub async fn update_matrix(mut rows: [Output<'static>; 8], mut cols: [Output<'static>; 8]) {
     loop {
         for (y, row) in rows.iter_mut().enumerate() {
-            for col in cols.iter_mut() {
-                col.set_high();
-            }
+            cols.iter_mut().for_each(|col| col.set_high());
             row.set_high();
             for (x, col) in cols.iter_mut().enumerate() {
                 if get(x as u8, y as u8) {
                     col.set_low();
                 }
             }
-            Timer::after_millis(1).await;
+            Timer::after_micros(250).await;
             row.set_low();
         }
     }

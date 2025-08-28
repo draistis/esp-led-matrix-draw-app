@@ -52,10 +52,10 @@ async fn net_task(mut runner: Runner<'static, WifiDevice<'static>>) {
 async fn connection_task(mut controller: WifiController<'static>) {
     loop {
         if esp_wifi::wifi::wifi_state() == WifiState::ApStarted {
-            // wait until we're no longer connected
             controller.wait_for_event(WifiEvent::ApStop).await;
-            Timer::after_millis(5000).await
+            Timer::after_secs(5).await;
         }
+
         if !matches!(controller.is_started(), Ok(true)) {
             let client_config = esp_wifi::wifi::Configuration::AccessPoint(
                 esp_wifi::wifi::AccessPointConfiguration {
@@ -67,7 +67,7 @@ async fn connection_task(mut controller: WifiController<'static>) {
             );
             controller.set_configuration(&client_config).unwrap();
             info!("Starting wifi");
-            controller.start_async().await.unwrap(); // Attempt to free null pointer
+            controller.start_async().await.unwrap();
             info!("Wifi started!");
         }
     }

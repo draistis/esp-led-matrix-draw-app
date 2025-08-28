@@ -65,9 +65,6 @@ async fn main(spawner: Spawner) {
     spawner.spawn(update_matrix(rows, cols)).unwrap();
 
     loop {
-        info!("Hello world!");
-        Timer::after(Duration::from_secs(60)).await;
+        Timer::after(Duration::from_secs(10)).await;
     }
-
-    // for inspiration have a look at the examples at https://github.com/esp-rs/esp-hal/tree/esp-hal-v1.0.0-rc.0/examples/src/bin
 }

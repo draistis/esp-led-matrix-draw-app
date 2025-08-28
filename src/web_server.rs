@@ -90,16 +90,16 @@ async fn handle_ws(socket: &mut TcpSocket<'static>) {
         if op_code == 9 {
             send_pong().await;
         } else if op_code != 1 {
-            defmt::error!("Got socket message which is not text type.");
+            defmt::warn!("Got socket message which is not text type");
             break;
         }
         if header[1] >> 7 != 1 {
-            defmt::error!("Got unmasked message from client.");
+            defmt::warn!("Got unmasked message from client");
             break;
         }
         let payload_len = header[1] & 0b01111111;
         if payload_len > 125 {
-            defmt::error!("Payload too long");
+            defmt::warn!("Payload too long");
             break;
         }
         if socket.read_exact(&mut header[2..6]).await.is_err() {
@@ -111,8 +111,10 @@ async fn handle_ws(socket: &mut TcpSocket<'static>) {
             .await
             .is_err()
         {
+            defmt::error!("Error reading payload");
             break;
         }
+        // Decode payload
         for (i, byte) in payload.iter_mut().enumerate() {
             *byte ^= mask[i % 4]
         }
@@ -120,13 +122,13 @@ async fn handle_ws(socket: &mut TcpSocket<'static>) {
         let x = &payload[..payload_len.into()];
         let y: alloc::string::String = x.utf8_chunks().map(|c| c.valid()).collect();
         info!("{}", y.as_str());
-        //
+        // =====
         if let Ok((data, _)) =
             serde_json_core::from_slice::<ClickEvent>(&payload[..payload_len.into()])
         {
             crate::led_matrix::set(data.x, data.y, data.on);
+            defmt::info!("Got message from client");
             send_update(socket).await;
-            defmt::info!("Set {}, {} to {}", data.x, data.y, data.on);
         } else {
             defmt::warn!("Failed to deserialize message from socket");
         }
