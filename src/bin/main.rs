@@ -20,6 +20,11 @@ use {esp_backtrace as _, esp_println as _};
 
 extern crate alloc;
 
+// With the chip identifier number facing you,
+// R - needs a resistor (220)
+// Far side:    32  33  R2  13  R16 25  27  R15
+// Close side:  R17 R18 12  14  R19 26  R5  R4
+
 // This creates a default app-descriptor required by the esp-idf bootloader.
 // For more information see: <https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/app_image_format.html#application-description>
 esp_bootloader_esp_idf::esp_app_desc!();
